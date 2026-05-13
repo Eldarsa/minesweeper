@@ -1,0 +1,93 @@
+'use client';
+
+import { useEffect, useRef } from 'react';
+import type { FlavorTally } from '@/lib/types';
+
+type Props = {
+  totalMines: number;
+  triggered: FlavorTally;
+  inputValue: string;
+  inputError: 'invalid' | 'oob' | null;
+  onInputChange: (v: string) => void;
+  onSubmit: () => void;
+};
+
+export function Hud({ totalMines, triggered, inputValue, inputError, onInputChange, onSubmit }: Props) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Keep focus on the coord input
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+  useEffect(() => {
+    const onClick = () => inputRef.current?.focus();
+    document.addEventListener('click', onClick);
+    return () => document.removeEventListener('click', onClick);
+  }, []);
+
+  const totalTriggered = triggered.shot + triggered.ice + triggered.wild;
+
+  return (
+    <div style={{
+      flex: '0 0 auto',
+      display: 'flex', gap: 10, alignItems: 'center', marginBottom: 12,
+    }}>
+      <div style={{
+        fontWeight: 900, fontSize: 22, letterSpacing: '-0.01em',
+        background: 'linear-gradient(90deg, #ff5c8a, #ff9a3c, #ffd23f, #2ec4b6, #b85cff)',
+        WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
+        marginRight: 8,
+      }}>🎉 Festminesveiper</div>
+
+      <Pill label="Miner" value={`${totalTriggered} / ${totalMines}`} />
+      <Pill label="🥃 Shots" value={String(triggered.shot)} />
+      <Pill label="❄ Iser" value={String(triggered.ice)} />
+      <Pill label="🎲 Jokere" value={String(triggered.wild)} />
+
+      <div style={{
+        marginLeft: 'auto',
+        background: 'rgba(255,255,255,0.95)',
+        border: `2px solid ${inputError ? '#ff3d6e' : '#b85cff'}`,
+        borderRadius: 999,
+        padding: '8px 16px',
+        boxShadow: '0 6px 20px rgba(184, 92, 255, 0.35)',
+        display: 'flex', alignItems: 'center', gap: 10, minWidth: 320,
+      }}>
+        <input
+          ref={inputRef}
+          value={inputValue}
+          onChange={e => onInputChange(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') onSubmit(); }}
+          placeholder="Skriv rute, f.eks. F4"
+          style={{
+            flex: 1, border: 0, outline: 0, fontSize: 16, fontWeight: 800,
+            color: '#2a1845', background: 'transparent',
+            textTransform: 'uppercase', letterSpacing: '.04em',
+          }}
+        />
+        <span style={{ color: inputError ? '#ff3d6e' : '#6a4d7a', fontSize: 11, fontWeight: 700 }}>
+          {inputError === 'oob' ? 'Ukjent rute' :
+           inputError === 'invalid' ? 'Ugyldig' :
+           '↵ for å åpne · F+rute for å flagge'}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function Pill({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{
+      background: 'rgba(255,255,255,0.08)',
+      border: '1px solid rgba(255,255,255,0.14)',
+      borderRadius: 999,
+      padding: '8px 14px',
+      boxShadow: '0 4px 14px rgba(0,0,0,0.18)',
+      fontSize: 13, display: 'flex', alignItems: 'center', gap: 8,
+      color: 'var(--text-on-dark)',
+    }}>
+      <span style={{ color: 'var(--muted-on-dark)', textTransform: 'uppercase', letterSpacing: '.08em', fontSize: 10, fontWeight: 700 }}>{label}</span>
+      <span style={{ fontWeight: 800, color: '#fff', fontSize: 15 }}>{value}</span>
+    </div>
+  );
+}
