@@ -1,5 +1,11 @@
 import type { Cell, Settings, MineFlavor } from './types';
 
+export type RevealResult = {
+  grid: Cell[][];
+  cascade: Array<{ row: number; col: number }>;
+  hitMine: { row: number; col: number; flavor: MineFlavor } | null;
+};
+
 export function createEmptyGrid(rows: number, cols: number): Cell[][] {
   const grid: Cell[][] = [];
   for (let r = 0; r < rows; r++) {
@@ -81,4 +87,71 @@ export function placeMines(
   }
 
   return next;
+}
+
+export function reveal(grid: Cell[][], row: number, col: number): RevealResult {
+  const rows = grid.length;
+  const cols = grid[0].length;
+  const target = grid[row][col];
+
+  if (target.revealed || target.flagged) {
+    return { grid, cascade: [], hitMine: null };
+  }
+
+  const next = grid.map(r => r.map(c => ({ ...c })));
+
+  if (target.hasMine) {
+    next[row][col].revealed = true;
+    return {
+      grid: next,
+      cascade: [{ row, col }],
+      hitMine: { row, col, flavor: target.flavor! },
+    };
+  }
+
+  const cascade: Array<{ row: number; col: number }> = [];
+  const queue: Array<[number, number]> = [[row, col]];
+  const seen = new Set<number>([row * cols + col]);
+
+  while (queue.length > 0) {
+    const [r, c] = queue.shift()!;
+    const cell = next[r][c];
+    if (cell.revealed || cell.flagged || cell.hasMine) continue;
+    cell.revealed = true;
+    cascade.push({ row: r, col: c });
+
+    if (cell.adjacent === 0) {
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          if (dr === 0 && dc === 0) continue;
+          const nr = r + dr, nc = c + dc;
+          if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) continue;
+          const idx = nr * cols + nc;
+          if (seen.has(idx)) continue;
+          seen.add(idx);
+          queue.push([nr, nc]);
+        }
+      }
+    }
+  }
+
+  return { grid: next, cascade, hitMine: null };
+}
+
+export function toggleFlag(grid: Cell[][], row: number, col: number): Cell[][] {
+  const cell = grid[row][col];
+  if (cell.revealed) return grid;
+  const next = grid.map(r => r.map(c => ({ ...c })));
+  next[row][col].flagged = !next[row][col].flagged;
+  return next;
+}
+
+export function countSafeRemaining(grid: Cell[][]): number {
+  let count = 0;
+  for (const row of grid) {
+    for (const c of row) {
+      if (!c.hasMine && !c.revealed) count++;
+    }
+  }
+  return count;
 }

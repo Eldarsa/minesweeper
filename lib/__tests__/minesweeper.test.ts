@@ -2,6 +2,9 @@ import { describe, it, expect } from 'vitest';
 import {
   createEmptyGrid,
   placeMines,
+  reveal,
+  toggleFlag,
+  countSafeRemaining,
 } from '../minesweeper';
 import type { Settings } from '../types';
 
@@ -90,5 +93,111 @@ describe('placeMines', () => {
         expect(placed[r][c].adjacent).toBe(expected);
       }
     }
+  });
+});
+
+function placedFixture() {
+  // 3×3 grid; mine at (1,1); adjacency hand-set so revealing (0,0) returns just the cell.
+  const grid = createEmptyGrid(3, 3);
+  grid[1][1] = { hasMine: true, flavor: 'shot', revealed: false, flagged: false, adjacent: 0 };
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 3; c++) {
+      if (grid[r][c].hasMine) continue;
+      grid[r][c].adjacent = 1; // every non-mine neighbors the single mine
+    }
+  }
+  return grid;
+}
+
+describe('reveal', () => {
+  it('reveals a numbered cell only', () => {
+    const grid = placedFixture();
+    const result = reveal(grid, 0, 0);
+    expect(result.cascade).toEqual([{ row: 0, col: 0 }]);
+    expect(result.hitMine).toBeNull();
+    expect(result.grid[0][0].revealed).toBe(true);
+    expect(result.grid[0][1].revealed).toBe(false);
+  });
+
+  it('revealing a mine returns hitMine and marks the cell revealed', () => {
+    const grid = placedFixture();
+    const result = reveal(grid, 1, 1);
+    expect(result.hitMine).toEqual({ row: 1, col: 1, flavor: 'shot' });
+    expect(result.grid[1][1].revealed).toBe(true);
+    expect(result.cascade).toEqual([{ row: 1, col: 1 }]);
+  });
+
+  it('cascades through empty (zero-adjacent) cells', () => {
+    // 4×4 grid with one mine in the corner; the rest have zero or one adjacent.
+    const grid = createEmptyGrid(4, 4);
+    grid[3][3] = { hasMine: true, flavor: 'ice', revealed: false, flagged: false, adjacent: 0 };
+    // Adjacency by hand: only (2,2), (2,3), (3,2) touch the mine
+    grid[2][2].adjacent = 1;
+    grid[2][3].adjacent = 1;
+    grid[3][2].adjacent = 1;
+    // All others remain zero-adjacent
+
+    const result = reveal(grid, 0, 0);
+    // Cascade should reveal everything except the mine and the three "1" cells stop the cascade
+    // (the 1-cells themselves are revealed but their neighbors past them are not auto-revealed)
+    const revealedCount = result.grid.flat().filter(c => c.revealed).length;
+    expect(revealedCount).toBeGreaterThanOrEqual(13); // 16 cells - 1 mine - at most 2 unrevealed
+    expect(result.grid[3][3].revealed).toBe(false);
+    expect(result.hitMine).toBeNull();
+  });
+
+  it('does not reveal a flagged cell', () => {
+    const grid = placedFixture();
+    grid[0][0].flagged = true;
+    const result = reveal(grid, 0, 0);
+    expect(result.grid[0][0].revealed).toBe(false);
+    expect(result.cascade).toEqual([]);
+    expect(result.hitMine).toBeNull();
+  });
+
+  it('does nothing when revealing an already-revealed cell', () => {
+    const grid = placedFixture();
+    grid[0][0].revealed = true;
+    const result = reveal(grid, 0, 0);
+    expect(result.cascade).toEqual([]);
+    expect(result.hitMine).toBeNull();
+  });
+});
+
+describe('toggleFlag', () => {
+  it('flags an unrevealed cell', () => {
+    const grid = placedFixture();
+    const next = toggleFlag(grid, 0, 0);
+    expect(next[0][0].flagged).toBe(true);
+  });
+  it('unflags a flagged cell', () => {
+    const grid = placedFixture();
+    grid[0][0].flagged = true;
+    const next = toggleFlag(grid, 0, 0);
+    expect(next[0][0].flagged).toBe(false);
+  });
+  it('does nothing on a revealed cell', () => {
+    const grid = placedFixture();
+    grid[0][0].revealed = true;
+    const next = toggleFlag(grid, 0, 0);
+    expect(next[0][0].flagged).toBe(false);
+  });
+});
+
+describe('countSafeRemaining', () => {
+  it('counts unrevealed non-mine cells', () => {
+    const grid = placedFixture();
+    grid[0][0].revealed = true;
+    // 9 cells total, 1 mine, 1 revealed safe → 7 safe remaining
+    expect(countSafeRemaining(grid)).toBe(7);
+  });
+  it('returns 0 when all safe cells revealed', () => {
+    const grid = placedFixture();
+    for (let r = 0; r < 3; r++) {
+      for (let c = 0; c < 3; c++) {
+        if (!grid[r][c].hasMine) grid[r][c].revealed = true;
+      }
+    }
+    expect(countSafeRemaining(grid)).toBe(0);
   });
 });
