@@ -155,6 +155,21 @@ describe('reveal', () => {
     expect(result.hitMine).toBeNull();
   });
 
+  it('flag→reveal-blocked→unflag→reveal-succeeds: a flagged cell must be unflagged before it can be opened', () => {
+    let grid = placedFixture();
+    grid = toggleFlag(grid, 0, 0);
+    expect(grid[0][0].flagged).toBe(true);
+    let result = reveal(grid, 0, 0);
+    expect(result.grid[0][0].revealed).toBe(false);
+    expect(result.cascade).toEqual([]);
+
+    const unflagged = toggleFlag(result.grid, 0, 0);
+    expect(unflagged[0][0].flagged).toBe(false);
+    result = reveal(unflagged, 0, 0);
+    expect(result.grid[0][0].revealed).toBe(true);
+    expect(result.cascade).toEqual([{ row: 0, col: 0 }]);
+  });
+
   it('does nothing when revealing an already-revealed cell', () => {
     const grid = placedFixture();
     grid[0][0].revealed = true;

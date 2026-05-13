@@ -14,7 +14,7 @@ type Props = {
 const NUMBER_COLORS = ['', '#2563eb', '#16a34a', '#e11d48', '#7c3aed', '#b45309', '#0891b2', '#1f2937', '#6b7280'];
 
 function hueFor(row: number, col: number): number {
-  return Math.floor(((row + 1) * 37 + (col + 1) * 53) % 360);
+  return Math.floor((row * 37 + col * 53) % 360);
 }
 
 export function Cell({ cell, row, col, isLastReveal, onClick, onRightClick }: Props) {

@@ -68,7 +68,7 @@ export function Hud({ totalMines, triggered, inputValue, inputError, onInputChan
         <span style={{ color: inputError ? '#ff3d6e' : '#6a4d7a', fontSize: 11, fontWeight: 700 }}>
           {inputError === 'oob' ? 'Ukjent rute' :
            inputError === 'invalid' ? 'Ugyldig' :
-           '↵ for å åpne · F+rute for å flagge'}
+           '↵ for å åpne · «F rute» for å flagge'}
         </span>
       </div>
     </div>
