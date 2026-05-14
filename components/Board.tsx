@@ -24,8 +24,8 @@ export function Board({ grid, lastReveal, onReveal, onFlag }: Props) {
     }}>
       <div style={{
         display: 'grid',
-        gridTemplateColumns: `28px repeat(${cols}, 1fr)`,
-        gridTemplateRows: `28px repeat(${rows}, 1fr)`,
+        gridTemplateColumns: `42px repeat(${cols}, 1fr)`,
+        gridTemplateRows: `42px repeat(${rows}, 1fr)`,
         gap: 6,
         aspectRatio: `${28 + cols * 60 + (cols - 1) * 6} / ${28 + rows * 60 + (rows - 1) * 6}`,
         height: '100%',
@@ -79,7 +79,7 @@ function Axis({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontWeight: 800, fontSize: 13, color: '#d4c4ff',
+      fontWeight: 800, fontSize: 'clamp(16px, 2vh, 22px)', color: '#d4c4ff',
       userSelect: 'none', letterSpacing: '.04em',
     }}>{children}</div>
   );

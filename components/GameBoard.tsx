@@ -43,6 +43,7 @@ export function GameBoard({ state, dispatch }: Props) {
         inputError={state.inputError}
         onInputChange={(v) => { setInput(v); if (state.inputError) dispatch({ type: 'clearInputError' }); }}
         onSubmit={submit}
+        onExit={() => dispatch({ type: 'reset' })}
       />
       <Board
         grid={state.grid}

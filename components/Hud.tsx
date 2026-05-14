@@ -10,9 +10,10 @@ type Props = {
   inputError: 'invalid' | 'oob' | null;
   onInputChange: (v: string) => void;
   onSubmit: () => void;
+  onExit: () => void;
 };
 
-export function Hud({ totalMines, triggered, inputValue, inputError, onInputChange, onSubmit }: Props) {
+export function Hud({ totalMines, triggered, inputValue, inputError, onInputChange, onSubmit, onExit }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Keep focus on the coord input
@@ -43,6 +44,23 @@ export function Hud({ totalMines, triggered, inputValue, inputError, onInputChan
       <Pill label="🥃 Shots" value={String(triggered.shot)} />
       <Pill label="❄ Iser" value={String(triggered.ice)} />
       <Pill label="🎲 Jokere" value={String(triggered.wild)} />
+
+      <button
+        onClick={(e) => { e.stopPropagation(); if (confirm('Avslutt spillet og gå til hovedmenyen?')) onExit(); }}
+        style={{
+          marginLeft: 8,
+          background: 'rgba(255,255,255,0.06)',
+          border: '1px solid rgba(255,255,255,0.18)',
+          borderRadius: 999,
+          padding: '8px 14px',
+          color: 'var(--text-on-dark)',
+          fontWeight: 700, fontSize: 13, cursor: 'pointer',
+          fontFamily: 'inherit',
+        }}
+        title="Avslutt og gå til hovedmenyen"
+      >
+        ← Hovedmeny
+      </button>
 
       <div style={{
         marginLeft: 'auto',
