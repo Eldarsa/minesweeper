@@ -49,12 +49,7 @@ export function SetupScreen({ initial, onStart }: Props) {
         width: 'min(560px, 100%)',
         boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
       }}>
-        <h1 style={{
-          fontSize: 36, margin: 0, fontWeight: 900,
-          background: 'linear-gradient(90deg, #ff5c8a, #ff9a3c, #ffd23f, #2ec4b6, #b85cff)',
-          WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
-        }}>🎉 Festminesveiper</h1>
-        <p style={{ color: 'var(--muted-on-dark)', marginTop: 4 }}>Velg vanskelighetsgrad og hvilke straffer som ligger i minene.</p>
+        <p style={{ color: 'var(--muted-on-dark)', margin: 0, fontSize: 18, fontWeight: 700 }}>Velg vanskelighetsgrad og hvilke straffer som ligger i minene.</p>
 
         <div style={{ display: 'flex', gap: 8, marginTop: 20, flexWrap: 'wrap' }}>
           {Object.keys(PRESETS).map(name => (

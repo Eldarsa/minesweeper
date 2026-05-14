@@ -33,13 +33,6 @@ export function Hud({ totalMines, triggered, inputValue, inputError, onInputChan
       flex: '0 0 auto',
       display: 'flex', gap: 10, alignItems: 'center', marginBottom: 12,
     }}>
-      <div style={{
-        fontWeight: 900, fontSize: 22, letterSpacing: '-0.01em',
-        background: 'linear-gradient(90deg, #ff5c8a, #ff9a3c, #ffd23f, #2ec4b6, #b85cff)',
-        WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
-        marginRight: 8,
-      }}>🎉 Festminesveiper</div>
-
       <Pill label="Miner" value={`${totalTriggered} / ${totalMines}`} />
       <Pill label="🥃 Shots" value={String(triggered.shot)} />
       <Pill label="❄ Iser" value={String(triggered.ice)} />

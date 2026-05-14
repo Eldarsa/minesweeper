@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Festminesveiper',
+  title: 'Minesveiper',
   description: 'Festvariant av Minesveiper.',
 };
 
