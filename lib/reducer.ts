@@ -28,6 +28,7 @@ export const initialState: GameState = {
   pickQueue: [],
   currentPlayerIdx: null,
   turnExpiresAt: null,
+  turnRemainingMs: null,
   playerStats: [],
 };
 
@@ -193,6 +194,7 @@ export function makeReducer(rng: () => number) {
         if (state.settings.mode !== 'random-player') return state;
         if (state.currentPlayerIdx === null) return state;
         if (state.overlayDismissAt !== null) return state; // overlay already up
+        if (state.turnRemainingMs !== null) return state;  // paused
 
         const idx = state.currentPlayerIdx;
         const triggered = { ...state.triggered, wild: state.triggered.wild + 1 };
@@ -206,6 +208,26 @@ export function makeReducer(rng: () => number) {
           lastMine: { row: -1, col: -1, flavor: 'wild' },
           overlayDismissAt: action.now + OVERLAY_DURATION_MS,
           turnExpiresAt: null,
+        };
+      }
+
+      case 'pauseTurn': {
+        if (state.phase !== 'playing') return state;
+        if (state.settings.mode !== 'random-player') return state;
+        if (state.turnExpiresAt === null) return state;       // nothing to pause
+        if (state.turnRemainingMs !== null) return state;     // already paused
+        const remaining = Math.max(0, state.turnExpiresAt - action.now);
+        return { ...state, turnExpiresAt: null, turnRemainingMs: remaining };
+      }
+
+      case 'resumeTurn': {
+        if (state.phase !== 'playing') return state;
+        if (state.settings.mode !== 'random-player') return state;
+        if (state.turnRemainingMs === null) return state;     // not paused
+        return {
+          ...state,
+          turnExpiresAt: action.now + state.turnRemainingMs,
+          turnRemainingMs: null,
         };
       }
 

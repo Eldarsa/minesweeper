@@ -4,12 +4,13 @@ import { useEffect, useState } from 'react';
 
 type Props = {
   expiresAt: number | null;
+  pausedRemainingMs: number | null;
   totalSeconds: number;
   playerName: string | null;
   onExpire: () => void;
 };
 
-export function TurnTimer({ expiresAt, totalSeconds, playerName, onExpire }: Props) {
+export function TurnTimer({ expiresAt, pausedRemainingMs, totalSeconds, playerName, onExpire }: Props) {
   const [secondsLeft, setSecondsLeft] = useState(totalSeconds);
 
   // Fire the expire dispatch exactly once when the deadline passes
@@ -35,34 +36,48 @@ export function TurnTimer({ expiresAt, totalSeconds, playerName, onExpire }: Pro
 
   if (!playerName) return null;
 
-  const urgent = expiresAt !== null && secondsLeft <= 5;
-  const accent = urgent ? '#ff3d6e' : '#ffd23f';
+  const paused = pausedRemainingMs !== null;
+  const displaySeconds =
+    paused ? Math.max(0, Math.ceil(pausedRemainingMs! / 1000)) :
+    expiresAt === null ? null :
+    secondsLeft;
+  const urgent = !paused && expiresAt !== null && secondsLeft <= 5;
+  const accent = paused ? '#a8a3c4' : urgent ? '#ff3d6e' : '#ffd23f';
 
   return (
     <div style={{
-      display: 'inline-flex', alignItems: 'center', gap: 12,
-      background: 'rgba(255,210,63,0.12)',
-      border: `2px solid ${accent}`,
+      display: 'inline-flex', alignItems: 'center', gap: 16,
+      background: paused ? 'rgba(160,150,200,0.10)' : 'rgba(255,210,63,0.12)',
+      border: `3px solid ${accent}`,
       borderRadius: 999,
-      padding: '6px 16px 6px 8px',
-      boxShadow: urgent ? `0 0 24px ${accent}80` : '0 4px 14px rgba(0,0,0,0.18)',
-      transition: 'box-shadow .2s ease, border-color .2s ease',
+      padding: '10px 28px 10px 12px',
+      boxShadow: urgent ? `0 0 32px ${accent}80` : '0 6px 18px rgba(0,0,0,0.22)',
+      transition: 'box-shadow .2s ease, border-color .2s ease, background .2s ease',
       animation: urgent ? 'turnTimerPulse .9s ease-in-out infinite' : undefined,
+      opacity: paused ? 0.85 : 1,
     }}>
       <span style={{
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        width: 32, height: 32, borderRadius: 999,
+        width: 52, height: 52, borderRadius: 999,
         background: accent, color: '#241046',
-        fontWeight: 900, fontSize: 14,
+        fontWeight: 900, fontSize: 22,
       }}>
-        {expiresAt === null ? '–' : secondsLeft}
+        {displaySeconds === null ? '–' : displaySeconds}
       </span>
-      <span style={{ color: '#fff', fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 800 }}>
-        Tur
-      </span>
-      <span style={{ color: '#fff', fontWeight: 900, fontSize: 16 }}>
+      <span style={{
+        color: '#fff', fontWeight: 900, fontSize: 32,
+        letterSpacing: '.01em', lineHeight: 1,
+      }}>
         {playerName}
       </span>
+      {paused && (
+        <span style={{
+          color: accent, fontSize: 12, fontWeight: 900,
+          textTransform: 'uppercase', letterSpacing: '.18em',
+        }}>
+          Pauset
+        </span>
+      )}
       <style>{`
         @keyframes turnTimerPulse {
           0%, 100% { transform: scale(1); }

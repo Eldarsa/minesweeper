@@ -196,6 +196,51 @@ describe('reducer — random-player mode', () => {
     expect(state.playerStats).toEqual([]);
   });
 
+  it('pauseTurn freezes the deadline and stores remaining ms', () => {
+    const reducer = makeReducer(rng(1));
+    let state: GameState = initialState;
+    state = reducer(state, { type: 'configure', settings: partySettings });
+    state = reducer(state, { type: 'start', now: 1000 });
+    // turnExpiresAt is 1000 + 15000 = 16000
+    state = reducer(state, { type: 'pauseTurn', now: 4000 });
+    expect(state.turnExpiresAt).toBeNull();
+    expect(state.turnRemainingMs).toBe(12000); // 16000 - 4000
+  });
+
+  it('resumeTurn restores the deadline from the paused remainder', () => {
+    const reducer = makeReducer(rng(1));
+    let state: GameState = initialState;
+    state = reducer(state, { type: 'configure', settings: partySettings });
+    state = reducer(state, { type: 'start', now: 1000 });
+    state = reducer(state, { type: 'pauseTurn', now: 4000 });
+    state = reducer(state, { type: 'resumeTurn', now: 100000 });
+    expect(state.turnRemainingMs).toBeNull();
+    expect(state.turnExpiresAt).toBe(100000 + 12000);
+  });
+
+  it('turnTimeout is rejected while paused', () => {
+    const reducer = makeReducer(rng(3));
+    let state: GameState = initialState;
+    state = reducer(state, { type: 'configure', settings: partySettings });
+    state = reducer(state, { type: 'start', now: 1000 });
+    state = reducer(state, { type: 'pauseTurn', now: 4000 });
+    const before = state;
+    state = reducer(state, { type: 'turnTimeout', now: 99999 });
+    expect(state).toBe(before); // no-op
+    expect(state.triggered.wild).toBe(0);
+  });
+
+  it('pauseTurn no-ops if not random-player or no active timer', () => {
+    const reducer = makeReducer(rng(1));
+    let state: GameState = initialState;
+    const classic: Settings = { ...partySettings, mode: 'classic', players: [] };
+    state = reducer(state, { type: 'configure', settings: classic });
+    state = reducer(state, { type: 'start' });
+    const before = state;
+    state = reducer(state, { type: 'pauseTurn', now: 1000 });
+    expect(state).toBe(before);
+  });
+
   it('reset clears random-player state', () => {
     const reducer = makeReducer(rng(1));
     let state: GameState = initialState;

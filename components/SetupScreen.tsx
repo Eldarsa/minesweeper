@@ -110,7 +110,7 @@ export function SetupScreen({ initial, onStart }: Props) {
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
           <NumField label="🥃 Shots" value={mix.shot} onChange={v => setMix({ ...mix, shot: v })} min={0} max={cap} />
-          <NumField label="❄ Iser"   value={mix.ice}  onChange={v => setMix({ ...mix, ice: v })}  min={0} max={cap} />
+          <NumField label="❄ Ice"    value={mix.ice}  onChange={v => setMix({ ...mix, ice: v })}  min={0} max={cap} />
           <NumField label="🎲 Jokere" value={mix.wild} onChange={v => setMix({ ...mix, wild: v })} min={0} max={cap} />
         </div>
 

@@ -49,7 +49,7 @@ export function MineRevealOverlay({
   const cell = isVirtual ? null : formatCoord(lastMine.row, lastMine.col);
   const cfg =
     lastMine.flavor === 'shot' ? { glyph: '🥃', title: 'SHOT!', accent: '#ff5c8a', verb: 'bunns!' } :
-    lastMine.flavor === 'ice'  ? { glyph: '❄',  title: 'IS!',   accent: '#4cc9f0', verb: 'is i nakken!' } :
+    lastMine.flavor === 'ice'  ? { glyph: '❄',  title: 'ICE!',  accent: '#4cc9f0', verb: 'chug en Smirnoff Ice!' } :
                                  { glyph: '🎲', title: wildcardText.toUpperCase().slice(0, 24), accent: '#b85cff', verb: wildcardText };
 
   const remaining = totalMines - (triggered.shot + triggered.ice + triggered.wild);
@@ -88,7 +88,7 @@ export function MineRevealOverlay({
           </p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 18 }}>
             <Chip>🥃 Shots: {triggered.shot}</Chip>
-            <Chip>❄ Iser: {triggered.ice}</Chip>
+            <Chip>❄ Ice: {triggered.ice}</Chip>
             <Chip>🎲 Jokere: {triggered.wild}</Chip>
             <Chip>⏳ Igjen: {remaining}</Chip>
           </div>
@@ -125,7 +125,7 @@ export function MineRevealOverlay({
       </p>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         <Chip>🥃 Shots: {triggered.shot}</Chip>
-        <Chip>❄ Iser: {triggered.ice}</Chip>
+        <Chip>❄ Ice: {triggered.ice}</Chip>
         <Chip>🎲 Jokere: {triggered.wild}</Chip>
         <Chip>⏳ Igjen: {remaining}</Chip>
       </div>

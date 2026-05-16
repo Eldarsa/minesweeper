@@ -45,7 +45,8 @@ export type GameState = {
   // Random-player mode state. Null/empty in classic.
   pickQueue: number[];                           // shuffled indices into settings.players
   currentPlayerIdx: number | null;
-  turnExpiresAt: number | null;                  // epoch ms; null while overlay is up or in classic
+  turnExpiresAt: number | null;                  // epoch ms; null while overlay is up, paused, or in classic
+  turnRemainingMs: number | null;                // non-null only when the timer is paused
   playerStats: PlayerStats[];                    // parallel to settings.players
 };
 
@@ -58,4 +59,6 @@ export type Action =
   | { type: 'clearInputError' }
   | { type: 'dismissOverlay'; now?: number }
   | { type: 'turnTimeout'; now: number }
+  | { type: 'pauseTurn'; now: number }
+  | { type: 'resumeTurn'; now: number }
   | { type: 'reset' };

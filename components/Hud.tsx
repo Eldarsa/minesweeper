@@ -1,12 +1,10 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import type { FlavorTally, GameMode, Player } from '@/lib/types';
+import type { GameMode, Player } from '@/lib/types';
 import { TurnTimer } from './TurnTimer';
 
 type Props = {
-  totalMines: number;
-  triggered: FlavorTally;
   inputValue: string;
   inputError: 'invalid' | 'oob' | 'flagsDisabled' | null;
   onInputChange: (v: string) => void;
@@ -18,14 +16,18 @@ type Props = {
   players: Player[];
   currentPlayerIdx: number | null;
   turnExpiresAt: number | null;
+  turnRemainingMs: number | null;
   turnSeconds: number;
   onTurnExpire: () => void;
+  onTogglePause: () => void;
+  pauseDisabled: boolean;
   inputDisabled: boolean;
 };
 
 export function Hud({
-  totalMines, triggered, inputValue, inputError, onInputChange, onSubmit, onExit,
-  mode, players, currentPlayerIdx, turnExpiresAt, turnSeconds, onTurnExpire, inputDisabled,
+  inputValue, inputError, onInputChange, onSubmit, onExit,
+  mode, players, currentPlayerIdx, turnExpiresAt, turnRemainingMs, turnSeconds,
+  onTurnExpire, onTogglePause, pauseDisabled, inputDisabled,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -38,10 +40,10 @@ export function Hud({
     return () => document.removeEventListener('click', onClick);
   }, [inputDisabled]);
 
-  const totalTriggered = triggered.shot + triggered.ice + triggered.wild;
   const currentName = mode === 'random-player' && currentPlayerIdx !== null
     ? players[currentPlayerIdx]?.name ?? null
     : null;
+  const paused = turnRemainingMs !== null;
 
   const errorMessage =
     inputError === 'oob' ? 'Ukjent rute' :
@@ -55,15 +57,9 @@ export function Hud({
       flex: '0 0 auto',
       display: 'flex', gap: 10, alignItems: 'center', marginBottom: 12, flexWrap: 'wrap',
     }}>
-      <Pill label="Miner" value={`${totalTriggered} / ${totalMines}`} />
-      <Pill label="🥃 Shots" value={String(triggered.shot)} />
-      <Pill label="❄ Iser" value={String(triggered.ice)} />
-      <Pill label="🎲 Jokere" value={String(triggered.wild)} />
-
       <button
         onClick={(e) => { e.stopPropagation(); if (confirm('Avslutt spillet og gå til hovedmenyen?')) onExit(); }}
         style={{
-          marginLeft: 8,
           background: 'rgba(255,255,255,0.06)',
           border: '1px solid rgba(255,255,255,0.18)',
           borderRadius: 999,
@@ -78,12 +74,33 @@ export function Hud({
       </button>
 
       {mode === 'random-player' && (
-        <TurnTimer
-          expiresAt={turnExpiresAt}
-          totalSeconds={turnSeconds}
-          playerName={currentName}
-          onExpire={onTurnExpire}
-        />
+        <>
+          <TurnTimer
+            expiresAt={turnExpiresAt}
+            pausedRemainingMs={turnRemainingMs}
+            totalSeconds={turnSeconds}
+            playerName={currentName}
+            onExpire={onTurnExpire}
+          />
+          <button
+            onClick={(e) => { e.stopPropagation(); onTogglePause(); }}
+            disabled={pauseDisabled}
+            title={paused ? 'Fortsett' : 'Pause'}
+            style={{
+              background: paused ? 'rgba(255,210,63,0.18)' : 'rgba(255,255,255,0.06)',
+              border: `1px solid ${paused ? '#ffd23f' : 'rgba(255,255,255,0.18)'}`,
+              borderRadius: 999,
+              padding: '8px 14px',
+              color: 'var(--text-on-dark)',
+              fontWeight: 800, fontSize: 13,
+              cursor: pauseDisabled ? 'not-allowed' : 'pointer',
+              opacity: pauseDisabled ? 0.4 : 1,
+              fontFamily: 'inherit',
+            }}
+          >
+            {paused ? '▶ Fortsett' : '⏸ Pause'}
+          </button>
+        </>
       )}
 
       <div style={{
@@ -117,19 +134,3 @@ export function Hud({
   );
 }
 
-function Pill({ label, value }: { label: string; value: string }) {
-  return (
-    <div style={{
-      background: 'rgba(255,255,255,0.08)',
-      border: '1px solid rgba(255,255,255,0.14)',
-      borderRadius: 999,
-      padding: '8px 14px',
-      boxShadow: '0 4px 14px rgba(0,0,0,0.18)',
-      fontSize: 13, display: 'flex', alignItems: 'center', gap: 8,
-      color: 'var(--text-on-dark)',
-    }}>
-      <span style={{ color: 'var(--muted-on-dark)', textTransform: 'uppercase', letterSpacing: '.08em', fontSize: 10, fontWeight: 700 }}>{label}</span>
-      <span style={{ fontWeight: 800, color: '#fff', fontSize: 15 }}>{value}</span>
-    </div>
-  );
-}

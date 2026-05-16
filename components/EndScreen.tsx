@@ -39,7 +39,7 @@ export function EndScreen({ state, onPlayAgain }: Props) {
 
         <div style={{ marginTop: 24, display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
           <Stat label="🥃 Shots servert" value={state.triggered.shot} />
-          <Stat label="❄ Iser servert" value={state.triggered.ice} />
+          <Stat label="❄ Ice servert" value={state.triggered.ice} />
           <Stat label="🎲 Jokere servert" value={state.triggered.wild} />
           <Stat label="🛡 Miner unngått" value={avoided} />
         </div>
