@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import type { GameMode, Player, Settings } from '@/lib/types';
+import type { GameMode, Settings } from '@/lib/types';
+import { usePlayersStore } from '@/lib/playersStore';
 
 const PRESETS: Record<string, { rows: number; cols: number; total: number; suggestedMix: { shot: number; ice: number; wild: number } }> = {
   Lett:        { rows: 9,  cols: 9,  total: 10, suggestedMix: { shot: 5,  ice: 4,  wild: 1 } },
   Middels:     { rows: 12, cols: 14, total: 22, suggestedMix: { shot: 10, ice: 8,  wild: 4 } },
+  Heftig:      { rows: 14, cols: 18, total: 38, suggestedMix: { shot: 17, ice: 14, wild: 7 } },
   Vanskelig:   { rows: 16, cols: 24, total: 60, suggestedMix: { shot: 28, ice: 22, wild: 10 } },
 };
 
@@ -24,7 +26,9 @@ export function SetupScreen({ initial, onStart }: Props) {
   const [wildcardText, setWildcardText] = useState(initial.wildcardText);
   const [presetName, setPresetName] = useState<keyof typeof PRESETS | 'Tilpasset'>('Middels');
   const [mode, setMode] = useState<GameMode>(initial.mode);
-  const [players, setPlayers] = useState<Player[]>(initial.players);
+  const players = usePlayersStore(s => s.players);
+  const addPlayerToStore = usePlayersStore(s => s.addPlayer);
+  const removePlayerFromStore = usePlayersStore(s => s.removePlayer);
   const [turnSeconds, setTurnSeconds] = useState(initial.turnSeconds);
   const [newName, setNewName] = useState('');
 
@@ -50,15 +54,13 @@ export function SetupScreen({ initial, onStart }: Props) {
   }
 
   function addPlayer() {
-    const trimmed = newName.trim().slice(0, MAX_NAME_LEN);
-    if (!trimmed) return;
-    if (players.length >= MAX_PLAYERS) return;
-    setPlayers([...players, { name: trimmed }]);
+    if (!newName.trim()) return;
+    addPlayerToStore(newName);
     setNewName('');
   }
 
   function removePlayer(i: number) {
-    setPlayers(players.filter((_, idx) => idx !== i));
+    removePlayerFromStore(i);
   }
 
   return (

@@ -15,14 +15,7 @@ type Props = {
 
 const NUMBER_COLORS = ['', '#2563eb', '#16a34a', '#e11d48', '#7c3aed', '#b45309', '#0891b2', '#1f2937', '#6b7280'];
 
-function hueFor(row: number, col: number): number {
-  return Math.floor((row * 37 + col * 53) % 360);
-}
-
 export function Cell({ cell, row, col, isLastReveal, showCoord, onClick, onRightClick }: Props) {
-  const hue = hueFor(row, col);
-  const animationDelay = `${((row + col) % 7) * 0.25}s`;
-
   const base: React.CSSProperties = {
     aspectRatio: '1 / 1',
     borderRadius: 12,
@@ -41,10 +34,8 @@ export function Cell({ cell, row, col, isLastReveal, showCoord, onClick, onRight
   if (!cell.revealed) {
     const style: React.CSSProperties = {
       ...base,
-      background: `linear-gradient(140deg, hsl(${hue}, 70%, 62%) 0%, hsl(${hue + 35}, 70%, 56%) 100%)`,
-      boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.25), 0 3px 8px rgba(0,0,0,0.22)',
-      animation: 'tileGlow 4.5s ease-in-out infinite',
-      animationDelay,
+      background: 'linear-gradient(140deg, #ffc488 0%, #ff9a4a 100%)',
+      boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.35), 0 3px 8px rgba(0,0,0,0.22)',
     };
     return (
       <div style={style} onClick={onClick} onContextMenu={e => { e.preventDefault(); onRightClick(); }}>
@@ -70,15 +61,15 @@ export function Cell({ cell, row, col, isLastReveal, showCoord, onClick, onRight
   }
 
   if (cell.hasMine && cell.flavor) {
-    const grad = cell.flavor === 'shot' ? 'linear-gradient(140deg, #ff5c8a 0%, #ff9a3c 100%)'
-              : cell.flavor === 'ice'  ? 'linear-gradient(140deg, #2ec4b6 0%, #4cc9f0 100%)'
-              :                          'linear-gradient(140deg, #b85cff 0%, #ff5cf2 100%)';
-    const shadow = cell.flavor === 'shot' ? 'inset 0 0 0 2px rgba(255,255,255,0.6), 0 6px 16px rgba(255, 92, 138, 0.4)'
-                : cell.flavor === 'ice'  ? 'inset 0 0 0 2px rgba(255,255,255,0.6), 0 6px 16px rgba(76, 201, 240, 0.4)'
-                :                          'inset 0 0 0 2px rgba(255,255,255,0.6), 0 6px 16px rgba(184, 92, 255, 0.4)';
     const glyph = cell.flavor === 'shot' ? '🥃' : cell.flavor === 'ice' ? '❄' : '🎲';
     return (
-      <div style={{ ...base, background: grad, boxShadow: shadow, color: 'white', animation: 'tilePop .35s ease-out' }}>
+      <div style={{
+        ...base,
+        background: 'linear-gradient(140deg, #ff2a3c 0%, #a80818 100%)',
+        boxShadow: 'inset 0 0 0 2px rgba(255,220,220,0.45), 0 6px 20px rgba(255,40,60,0.55)',
+        color: 'white',
+        animation: 'tilePop .35s ease-out',
+      }}>
         {glyph}
       </div>
     );
