@@ -1,12 +1,14 @@
 'use client';
 
 import type { Cell as CellModel } from '@/lib/types';
+import { formatCoord } from '@/lib/coords';
 
 type Props = {
   cell: CellModel;
   row: number;
   col: number;
   isLastReveal: boolean;
+  showCoord: boolean;
   onClick: () => void;
   onRightClick: () => void;
 };
@@ -17,7 +19,7 @@ function hueFor(row: number, col: number): number {
   return Math.floor((row * 37 + col * 53) % 360);
 }
 
-export function Cell({ cell, row, col, isLastReveal, onClick, onRightClick }: Props) {
+export function Cell({ cell, row, col, isLastReveal, showCoord, onClick, onRightClick }: Props) {
   const hue = hueFor(row, col);
   const animationDelay = `${((row + col) % 7) * 0.25}s`;
 
@@ -48,6 +50,20 @@ export function Cell({ cell, row, col, isLastReveal, onClick, onRightClick }: Pr
       <div style={style} onClick={onClick} onContextMenu={e => { e.preventDefault(); onRightClick(); }}>
         {cell.flagged && (
           <span style={{ fontSize: '1.6em', color: '#fff', filter: 'drop-shadow(0 2px 0 rgba(0,0,0,0.25))' }}>⚑</span>
+        )}
+        {showCoord && !cell.flagged && (
+          <span style={{
+            position: 'absolute', inset: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'rgba(40, 30, 70, 0.55)',
+            fontSize: 'clamp(14px, 2vh, 20px)',
+            fontWeight: 800,
+            letterSpacing: '.04em',
+            pointerEvents: 'none',
+            userSelect: 'none',
+          }}>
+            {formatCoord(row, col)}
+          </span>
         )}
       </div>
     );

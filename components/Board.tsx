@@ -7,11 +7,12 @@ import type { Cell as CellModel } from '@/lib/types';
 type Props = {
   grid: CellModel[][];
   lastReveal: { row: number; col: number } | null;
+  showCoords: boolean;
   onReveal: (row: number, col: number) => void;
   onFlag: (row: number, col: number) => void;
 };
 
-export function Board({ grid, lastReveal, onReveal, onFlag }: Props) {
+export function Board({ grid, lastReveal, showCoords, onReveal, onFlag }: Props) {
   if (grid.length === 0) return null;
   const rows = grid.length;
   const cols = grid[0].length;
@@ -44,6 +45,7 @@ export function Board({ grid, lastReveal, onReveal, onFlag }: Props) {
             row={row}
             isLastRow={lastReveal?.row === r}
             lastCol={lastReveal?.col ?? -1}
+            showCoords={showCoords}
             onReveal={onReveal}
             onFlag={onFlag}
           />
@@ -53,9 +55,10 @@ export function Board({ grid, lastReveal, onReveal, onFlag }: Props) {
   );
 }
 
-function RowFragment({ r, row, isLastRow, lastCol, onReveal, onFlag }: {
+function RowFragment({ r, row, isLastRow, lastCol, showCoords, onReveal, onFlag }: {
   r: number; row: CellModel[];
   isLastRow: boolean; lastCol: number;
+  showCoords: boolean;
   onReveal: (r: number, c: number) => void;
   onFlag: (r: number, c: number) => void;
 }) {
@@ -67,6 +70,7 @@ function RowFragment({ r, row, isLastRow, lastCol, onReveal, onFlag }: {
           key={`${r}-${c}`}
           cell={cell} row={r} col={c}
           isLastReveal={isLastRow && c === lastCol}
+          showCoord={showCoords}
           onClick={() => onReveal(r, c)}
           onRightClick={() => onFlag(r, c)}
         />

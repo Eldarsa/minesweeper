@@ -137,6 +137,8 @@ export function makeReducer(rng: () => number) {
         };
 
         if (state.settings.mode === 'random-player' && state.currentPlayerIdx !== null) {
+          // A reveal during a pause implicitly resumes the game.
+          next = { ...next, turnRemainingMs: null };
           const stats = next.playerStats.slice();
           const idx = state.currentPlayerIdx;
           const prev = stats[idx];

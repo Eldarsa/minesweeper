@@ -2,7 +2,6 @@
 
 import { useCallback, useState } from 'react';
 import type { GameState, Action } from '@/lib/types';
-import { parseCoord } from '@/lib/coords';
 import { Hud } from './Hud';
 import { Board } from './Board';
 import { MineRevealOverlay } from './MineRevealOverlay';
@@ -13,31 +12,11 @@ type Props = {
 };
 
 export function GameBoard({ state, dispatch }: Props) {
-  const [input, setInput] = useState('');
+  const [showCoords, setShowCoords] = useState(true);
   const totalMines = state.settings.mix.shot + state.settings.mix.ice + state.settings.mix.wild;
   const isRandomPlayer = state.settings.mode === 'random-player';
   const overlayUp = state.overlayDismissAt !== null;
   const paused = state.turnRemainingMs !== null;
-  const inputDisabled = isRandomPlayer && (overlayUp || paused);
-
-  function submit() {
-    if (inputDisabled) return;
-    const result = parseCoord(input, state.settings.rows, state.settings.cols);
-    if ('error' in result) {
-      dispatch({ type: 'inputError', kind: result.error });
-      return;
-    }
-    if (result.kind === 'flag') {
-      if (isRandomPlayer) {
-        dispatch({ type: 'inputError', kind: 'flagsDisabled' });
-        return;
-      }
-      dispatch({ type: 'flag', row: result.row, col: result.col });
-    } else {
-      dispatch({ type: 'reveal', row: result.row, col: result.col, now: Date.now() });
-    }
-    setInput('');
-  }
 
   const onTurnExpire = useCallback(() => {
     dispatch({ type: 'turnTimeout', now: Date.now() });
@@ -54,10 +33,6 @@ export function GameBoard({ state, dispatch }: Props) {
       padding: '14px 18px 18px',
     }}>
       <Hud
-        inputValue={input}
-        inputError={state.inputError}
-        onInputChange={(v) => { setInput(v); if (state.inputError) dispatch({ type: 'clearInputError' }); }}
-        onSubmit={submit}
         onExit={() => dispatch({ type: 'reset' })}
         mode={state.settings.mode}
         players={state.settings.players}
@@ -68,17 +43,16 @@ export function GameBoard({ state, dispatch }: Props) {
         onTurnExpire={onTurnExpire}
         onTogglePause={onTogglePause}
         pauseDisabled={overlayUp || state.currentPlayerIdx === null}
-        inputDisabled={inputDisabled}
+        showCoords={showCoords}
+        onToggleCoords={() => setShowCoords(v => !v)}
       />
       <Board
         grid={state.grid}
         lastReveal={state.lastReveal}
+        showCoords={showCoords}
         onReveal={(r, c) => dispatch({ type: 'reveal', row: r, col: c, now: Date.now() })}
         onFlag={(r, c) => {
-          if (isRandomPlayer) {
-            dispatch({ type: 'inputError', kind: 'flagsDisabled' });
-            return;
-          }
+          if (isRandomPlayer) return; // flags disabled in Festmodus
           dispatch({ type: 'flag', row: r, col: c });
         }}
       />

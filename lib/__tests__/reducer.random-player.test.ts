@@ -230,6 +230,23 @@ describe('reducer — random-player mode', () => {
     expect(state.triggered.wild).toBe(0);
   });
 
+  it('reveal during pause auto-resumes (clears turnRemainingMs)', () => {
+    const reducer = makeReducer(rng(7));
+    let state: GameState = initialState;
+    state = reducer(state, { type: 'configure', settings: partySettings });
+    state = reducer(state, { type: 'start', now: 1000 });
+    // First reveal places mines (safe in safety zone)
+    state = reducer(state, { type: 'reveal', row: 4, col: 4, now: 2000 });
+    // Pause mid-turn
+    state = reducer(state, { type: 'pauseTurn', now: 3000 });
+    expect(state.turnRemainingMs).not.toBeNull();
+    // Find another safe cell and reveal — should implicitly resume
+    const safe = findSafe(state.grid);
+    state = reducer(state, { type: 'reveal', row: safe.row, col: safe.col, now: 10000 });
+    expect(state.turnRemainingMs).toBeNull();
+    expect(state.turnExpiresAt).toBe(10000 + 15000); // fresh timer for next player
+  });
+
   it('pauseTurn no-ops if not random-player or no active timer', () => {
     const reducer = makeReducer(rng(1));
     let state: GameState = initialState;
