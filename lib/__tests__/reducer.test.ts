@@ -6,6 +6,9 @@ const settings: Settings = {
   rows: 9, cols: 9,
   mix: { shot: 3, ice: 2, wild: 1 },
   wildcardText: 'Bunns!',
+  mode: 'classic',
+  players: [],
+  turnSeconds: 15,
 };
 
 function rng(seed: number): () => number {
@@ -72,6 +75,7 @@ describe('reducer', () => {
   it('clearing all safe cells transitions to cleared and records endedAt', () => {
     const tinySettings: Settings = {
       rows: 3, cols: 3, mix: { shot: 1, ice: 0, wild: 0 }, wildcardText: 'Bunns!',
+      mode: 'classic', players: [], turnSeconds: 15,
     };
     const reducer = makeReducer(rng(4));
     let state: GameState = initialState;

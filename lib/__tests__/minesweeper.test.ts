@@ -13,6 +13,9 @@ const settings = (rows: number, cols: number, shot: number, ice: number, wild: n
   cols,
   mix: { shot, ice, wild },
   wildcardText: 'Bunns!',
+  mode: 'classic',
+  players: [],
+  turnSeconds: 15,
 });
 
 // Deterministic RNG for tests: mulberry32

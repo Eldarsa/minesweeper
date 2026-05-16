@@ -1,37 +1,59 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import type { FlavorTally } from '@/lib/types';
+import type { FlavorTally, GameMode, Player } from '@/lib/types';
+import { TurnTimer } from './TurnTimer';
 
 type Props = {
   totalMines: number;
   triggered: FlavorTally;
   inputValue: string;
-  inputError: 'invalid' | 'oob' | null;
+  inputError: 'invalid' | 'oob' | 'flagsDisabled' | null;
   onInputChange: (v: string) => void;
   onSubmit: () => void;
   onExit: () => void;
+
+  // Random-player mode (all null/empty in classic)
+  mode: GameMode;
+  players: Player[];
+  currentPlayerIdx: number | null;
+  turnExpiresAt: number | null;
+  turnSeconds: number;
+  onTurnExpire: () => void;
+  inputDisabled: boolean;
 };
 
-export function Hud({ totalMines, triggered, inputValue, inputError, onInputChange, onSubmit, onExit }: Props) {
+export function Hud({
+  totalMines, triggered, inputValue, inputError, onInputChange, onSubmit, onExit,
+  mode, players, currentPlayerIdx, turnExpiresAt, turnSeconds, onTurnExpire, inputDisabled,
+}: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Keep focus on the coord input
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
   useEffect(() => {
-    const onClick = () => inputRef.current?.focus();
+    const onClick = () => { if (!inputDisabled) inputRef.current?.focus(); };
     document.addEventListener('click', onClick);
     return () => document.removeEventListener('click', onClick);
-  }, []);
+  }, [inputDisabled]);
 
   const totalTriggered = triggered.shot + triggered.ice + triggered.wild;
+  const currentName = mode === 'random-player' && currentPlayerIdx !== null
+    ? players[currentPlayerIdx]?.name ?? null
+    : null;
+
+  const errorMessage =
+    inputError === 'oob' ? 'Ukjent rute' :
+    inputError === 'invalid' ? 'Ugyldig' :
+    inputError === 'flagsDisabled' ? 'Flagging er av i festmodus' :
+    mode === 'random-player' ? '↵ for å åpne rute' :
+    '↵ for å åpne · «F rute» for å flagge';
 
   return (
     <div style={{
       flex: '0 0 auto',
-      display: 'flex', gap: 10, alignItems: 'center', marginBottom: 12,
+      display: 'flex', gap: 10, alignItems: 'center', marginBottom: 12, flexWrap: 'wrap',
     }}>
       <Pill label="Miner" value={`${totalTriggered} / ${totalMines}`} />
       <Pill label="🥃 Shots" value={String(triggered.shot)} />
@@ -55,21 +77,32 @@ export function Hud({ totalMines, triggered, inputValue, inputError, onInputChan
         ← Hovedmeny
       </button>
 
+      {mode === 'random-player' && (
+        <TurnTimer
+          expiresAt={turnExpiresAt}
+          totalSeconds={turnSeconds}
+          playerName={currentName}
+          onExpire={onTurnExpire}
+        />
+      )}
+
       <div style={{
         marginLeft: 'auto',
-        background: 'rgba(255,255,255,0.95)',
+        background: inputDisabled ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.95)',
         border: `2px solid ${inputError ? '#ff3d6e' : '#b85cff'}`,
         borderRadius: 999,
         padding: '8px 16px',
         boxShadow: '0 6px 20px rgba(184, 92, 255, 0.35)',
         display: 'flex', alignItems: 'center', gap: 10, minWidth: 320,
+        opacity: inputDisabled ? 0.6 : 1,
       }}>
         <input
           ref={inputRef}
           value={inputValue}
           onChange={e => onInputChange(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') onSubmit(); }}
-          placeholder="Skriv rute, f.eks. F4"
+          disabled={inputDisabled}
+          placeholder={currentName ? `${currentName}, skriv rute…` : 'Skriv rute, f.eks. F4'}
           style={{
             flex: 1, border: 0, outline: 0, fontSize: 16, fontWeight: 800,
             color: '#2a1845', background: 'transparent',
@@ -77,9 +110,7 @@ export function Hud({ totalMines, triggered, inputValue, inputError, onInputChan
           }}
         />
         <span style={{ color: inputError ? '#ff3d6e' : '#6a4d7a', fontSize: 11, fontWeight: 700 }}>
-          {inputError === 'oob' ? 'Ukjent rute' :
-           inputError === 'invalid' ? 'Ugyldig' :
-           '↵ for å åpne · «F rute» for å flagge'}
+          {errorMessage}
         </span>
       </div>
     </div>

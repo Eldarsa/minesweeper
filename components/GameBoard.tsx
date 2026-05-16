@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import type { GameState, Action } from '@/lib/types';
 import { parseCoord } from '@/lib/coords';
 import { Hud } from './Hud';
@@ -15,20 +15,32 @@ type Props = {
 export function GameBoard({ state, dispatch }: Props) {
   const [input, setInput] = useState('');
   const totalMines = state.settings.mix.shot + state.settings.mix.ice + state.settings.mix.wild;
+  const isRandomPlayer = state.settings.mode === 'random-player';
+  const overlayUp = state.overlayDismissAt !== null;
+  const inputDisabled = isRandomPlayer && overlayUp;
 
   function submit() {
+    if (inputDisabled) return;
     const result = parseCoord(input, state.settings.rows, state.settings.cols);
     if ('error' in result) {
       dispatch({ type: 'inputError', kind: result.error });
       return;
     }
-    if (result.kind === 'reveal') {
-      dispatch({ type: 'reveal', row: result.row, col: result.col, now: Date.now() });
-    } else {
+    if (result.kind === 'flag') {
+      if (isRandomPlayer) {
+        dispatch({ type: 'inputError', kind: 'flagsDisabled' });
+        return;
+      }
       dispatch({ type: 'flag', row: result.row, col: result.col });
+    } else {
+      dispatch({ type: 'reveal', row: result.row, col: result.col, now: Date.now() });
     }
     setInput('');
   }
+
+  const onTurnExpire = useCallback(() => {
+    dispatch({ type: 'turnTimeout', now: Date.now() });
+  }, [dispatch]);
 
   return (
     <div style={{
@@ -44,20 +56,37 @@ export function GameBoard({ state, dispatch }: Props) {
         onInputChange={(v) => { setInput(v); if (state.inputError) dispatch({ type: 'clearInputError' }); }}
         onSubmit={submit}
         onExit={() => dispatch({ type: 'reset' })}
+        mode={state.settings.mode}
+        players={state.settings.players}
+        currentPlayerIdx={state.currentPlayerIdx}
+        turnExpiresAt={state.turnExpiresAt}
+        turnSeconds={state.settings.turnSeconds}
+        onTurnExpire={onTurnExpire}
+        inputDisabled={inputDisabled}
       />
       <Board
         grid={state.grid}
         lastReveal={state.lastReveal}
         onReveal={(r, c) => dispatch({ type: 'reveal', row: r, col: c, now: Date.now() })}
-        onFlag={(r, c) => dispatch({ type: 'flag', row: r, col: c })}
+        onFlag={(r, c) => {
+          if (isRandomPlayer) {
+            dispatch({ type: 'inputError', kind: 'flagsDisabled' });
+            return;
+          }
+          dispatch({ type: 'flag', row: r, col: c });
+        }}
       />
       <MineRevealOverlay
+        mode={state.settings.mode}
         lastMine={state.lastMine}
         overlayDismissAt={state.overlayDismissAt}
         totalMines={totalMines}
         triggered={state.triggered}
         wildcardText={state.settings.wildcardText}
-        onDismiss={() => dispatch({ type: 'dismissOverlay' })}
+        currentPlayerName={state.currentPlayerIdx !== null
+          ? state.settings.players[state.currentPlayerIdx]?.name ?? null
+          : null}
+        onDismiss={() => dispatch({ type: 'dismissOverlay', now: Date.now() })}
       />
     </div>
   );

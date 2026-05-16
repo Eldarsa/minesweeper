@@ -15,7 +15,7 @@ export default function Page() {
       initial={state.settings}
       onStart={(settings) => {
         dispatch({ type: 'configure', settings });
-        dispatch({ type: 'start' });
+        dispatch({ type: 'start', now: Date.now() });
       }}
     />;
   }
